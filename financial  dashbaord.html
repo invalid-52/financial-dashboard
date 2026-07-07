@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AXIOM | Financial Intelligence System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--bg2:#0a0d17;
+  --s1:rgba(11,16,28,.92);--s2:rgba(7,11,21,.96);--s3:rgba(15,21,38,.7);
+  --b1:#3b82f6;--b2:#60a5fa;--b3:#bfdbfe;
+  --g1:#22c55e;--g2:#86efac;
+  --r1:#ef4444;--r2:#fca5a5;
+  --am:#f59e0b;--am2:#fde68a;
+  --pu:#a855f7;--pu2:#d8b4fe;
+  --cy:#06b6d4;--cy2:#67e8f9;
+  --border:rgba(255,255,255,.07);
+  --bga:rgba(59,130,246,.2);
+  --text:#f1f5f9;--t2:#94a3b8;--t3:#475569;
+  --syne:'Syne',sans-serif;--mono:'IBM Plex Mono',monospace;--dm:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--dm)}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:rgba(59,130,246,.3);border-radius:2px}
+
+/* ── PRELOADER ── */
+#preloader{position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+.pl-scan{position:absolute;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--b1),transparent);top:0;animation:plscan 2.8s linear infinite;box-shadow:0 0 18px var(--b1)}
+@keyframes plscan{from{top:0}to{top:100%}}
+.pl-ring{width:80px;height:80px;border-radius:50%;border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:2rem}
+.pl-ring::before{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid transparent;border-top-color:var(--b1);animation:spin 1.2s linear infinite}
+.pl-ring::after{content:'';position:absolute;inset:8px;border-radius:50%;border:1px solid rgba(59,130,246,.2);border-bottom-color:var(--cy);animation:spin 2s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pl-core{width:36px;height:36px;background:conic-gradient(var(--b1),var(--cy),var(--b1));border-radius:50%;box-shadow:0 0 30px rgba(59,130,246,.6)}
+.pl-logo{font-family:var(--syne);font-size:2.2rem;font-weight:800;letter-spacing:.35em;text-transform:uppercase;background:linear-gradient(90deg,var(--b2),var(--cy));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.4rem}
+.pl-sub{font-family:var(--mono);font-size:.6rem;color:var(--b2);letter-spacing:.4em;text-transform:uppercase;margin-bottom:2rem;opacity:.8}
+.pl-bar-wrap{width:260px;height:1px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-bottom:1rem}
+.pl-bar{height:100%;background:linear-gradient(90deg,var(--b1),var(--cy));width:0%;box-shadow:0 0 10px var(--b1)}
+.pl-msg{font-family:var(--mono);font-size:.62rem;color:var(--t2);height:16px;text-align:center;min-width:260px}
+
+/* ── BACKGROUND GRID ── */
+#grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(59,130,246,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.025) 1px,transparent 1px);
+  background-size:60px 60px}
+#grid-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(59,130,246,.04),transparent)}
+
+/* ── APP ── */
+#app{display:flex;height:100vh;width:100vw;opacity:0;position:relative;z-index:10;transition:opacity .5s}
+
+/* ── SIDEBAR ── */
+.sidebar{width:268px;background:var(--s2);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100%;flex-shrink:0;z-index:50;transition:width .22s ease;backdrop-filter:blur(40px)}
+.sidebar.mini{width:54px}
+.sidebar.mini .nav-label,.sidebar.mini .nav-badge,.sidebar.mini .sb-section,.sidebar.mini .sb-logo-text,.sidebar.mini .sb-foot-text{display:none}
+.sb-head{padding:1.6rem 1.2rem 1rem}
+.sb-logo{display:flex;align-items:center;gap:12px;margin-bottom:2.2rem}
+.logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--b1),var(--cy));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(59,130,246,.35);position:relative;overflow:hidden}
+.logo-mark::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.12));border-radius:10px}
+.logo-mark svg{width:18px;height:18px;fill:white}
+.sb-logo-text{display:flex;flex-direction:column}
+.logo-name{font-family:var(--syne);font-size:1.1rem;font-weight:800;letter-spacing:.04em}
+.logo-tagline{font-family:var(--mono);font-size:.55rem;color:var(--b2);letter-spacing:.18em;text-transform:uppercase;margin-top:1px}
+.sb-section{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.28em;color:rgba(255,255,255,.18);padding:.4rem 1rem .2rem;margin-top:.4rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:.58rem .9rem;margin:1px .5rem;border-radius:10px;cursor:pointer;transition:all .2s;color:var(--t2);white-space:nowrap;overflow:hidden;position:relative;font-size:.8rem;font-weight:500}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-item.on{color:var(--b2);background:rgba(59,130,246,.1);border-left:2px solid var(--b1);box-shadow:inset 10px 0 18px -10px rgba(59,130,246,.3)}
+.nav-icon{font-size:.9rem;flex-shrink:0;width:18px;text-align:center}
+.nav-label{font-size:.78rem;font-weight:600;letter-spacing:.01em}
+.nav-badge{margin-left:auto;padding:1px 6px;border-radius:6px;font-size:.56rem;font-weight:700;background:var(--r1);color:#fff;flex-shrink:0}
+.nav-badge.warn{background:var(--am);color:#000}
+.nav-badge.info{background:var(--b1);color:#fff}
+.sb-foot{margin-top:auto;padding:1rem 1rem;border-top:1px solid var(--border)}
+.sb-pill{background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.12);padding:.6rem .8rem;border-radius:10px;display:flex;align-items:center;gap:8px}
+.sb-dot{width:7px;height:7px;background:var(--g1);border-radius:50%;animation:sbpulse 1.6s infinite;box-shadow:0 0 8px var(--g1);flex-shrink:0}
+@keyframes sbpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.sb-foot-text{display:flex;flex-direction:column}
+.sb-ft1{font-size:.68rem;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.08em}
+.sb-ft2{font-family:var(--mono);font-size:.58rem;color:var(--t2);margin-top:1px}
+.sb-mini-btn{background:transparent;border:1px solid var(--border);color:var(--t2);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:.68rem;margin-bottom:.5rem;width:100%;font-family:var(--dm);transition:all .2s}
+.sb-mini-btn:hover{border-color:var(--b2);color:var(--text)}
+
+/* ── MAIN ── */
+.main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{height:54px;background:var(--s2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.8rem;gap:1rem;flex-shrink:0;z-index:40;backdrop-filter:blur(40px)}
+.tb-title{font-family:var(--syne);font-size:.95rem;font-weight:700;white-space:nowrap}
+.tb-sep{flex:1}
+.tb-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.tb-ok{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--g1)}
+.tb-warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--am)}
+.tbtn{background:transparent;border:1px solid var(--border);color:var(--t2);padding:5px 13px;border-radius:18px;cursor:pointer;font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:5px;transition:all .2s;font-family:var(--dm);white-space:nowrap}
+.tbtn:hover{border-color:var(--b2);color:var(--text)}
+.tbtn.accent{background:var(--b1);color:#fff;border:none;font-weight:700;box-shadow:0 0 22px rgba(59,130,246,.4)}
+.tbtn.accent:hover{transform:scale(1.04);box-shadow:0 0 32px rgba(59,130,246,.55)}
+.tbtn.ai-btn{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;font-weight:700;box-shadow:0 0 22px rgba(168,85,247,.35)}
+.tb-clock{font-family:var(--mono);font-size:.7rem;color:var(--t2)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--b1),var(--pu));display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;cursor:pointer;border:2px solid rgba(59,130,246,.25);flex-shrink:0}
+.tb-sel{background:var(--s1);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:8px;font-size:.7rem;outline:none;cursor:pointer;font-family:var(--dm)}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:1.8rem;position:relative;z-index:10}
+.view{display:none;animation:vin .3s ease both}
+.view.on{display:block}
+@keyframes vin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARDS ── */
+.card{background:var(--s1);backdrop-filter:blur(30px);border:1px solid var(--border);border-radius:18px;padding:1.4rem;position:relative;overflow:hidden;transition:border-color .25s,box-shadow .25s,transform .25s}
+.card:hover{border-color:rgba(59,130,246,.2);box-shadow:0 0 32px rgba(59,130,246,.08);transform:translateY(-1px)}
+.card-sm{padding:1rem}
+.card-glow::before{content:'';position:absolute;top:-50px;right:-50px;width:140px;height:140px;border-radius:50%;filter:blur(35px);opacity:.06;pointer-events:none}
+.cg-blue::before{background:var(--b1)}
+.cg-green::before{background:var(--g1)}
+.cg-red::before{background:var(--r1)}
+.cg-amber::before{background:var(--am)}
+.cg-purple::before{background:var(--pu)}
+.cg-cyan::before{background:var(--cy)}
+
+/* ── GRID ── */
+.g{display:grid;gap:.9rem}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g5{grid-template-columns:repeat(5,1fr)}
+.g21{grid-template-columns:2fr 1fr}
+.g31{grid-template-columns:3fr 1fr}
+.g12{grid-template-columns:1fr 2fr}
+@media(max-width:1400px){.g5{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1100px){.g3,.g31,.g21{grid-template-columns:1fr}.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.g2,.g12{grid-template-columns:1fr}}
+
+/* ── SECTION HEADER ── */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
+.sh-left{display:flex;align-items:center;gap:8px}
+.acbar{width:3px;height:16px;border-radius:2px;background:linear-gradient(180deg,var(--b1),var(--cy));box-shadow:0 0 6px var(--b1)}
+.sh-title{font-family:var(--syne);font-size:.95rem;font-weight:700}
+.sh-sub{font-family:var(--mono);font-size:.58rem;color:var(--t2);text-transform:uppercase;letter-spacing:.15em;margin-top:1px}
+.sh-actions{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+
+/* ── PAGE TITLE ── */
+.pg-title{font-family:var(--syne);font-size:2.4rem;font-weight:800;letter-spacing:-.5px;line-height:1.05;margin-bottom:.3rem}
+.pg-sub{font-family:var(--mono);font-size:.62rem;color:var(--t2);text-transform:uppercase;letter-spacing:.25em;margin-bottom:1.5rem}
+
+/* ── KPI CARDS ── */
+.kpi-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--t2);margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}
+.kpi-val{font-family:var(--syne);font-size:2.1rem;font-weight:800;line-height:1;background:linear-gradient(to bottom,#fff,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.4rem}
+.kpi-val.blue{background:linear-gradient(135deg,var(--b2),var(--cy));-webkit-background-clip:text}
+.kpi-val.green{background:linear-gradient(135deg,var(--g1),var(--cy));-webkit-background-clip:text}
+.kpi-val.red{background:linear-gradient(135deg,var(--r1),#fb923c);-webkit-background-clip:text}
+.kpi-val.amber{background:linear-gradient(135deg,var(--am),#fb923c);-webkit-background-clip:text}
+.kpi-val.purple{background:linear-gradient(135deg,var(--pu),var(--b2));-webkit-background-clip:text}
+.kpi-delta{font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:14px;display:inline-flex;align-items:center;gap:3px;margin-bottom:.5rem}
+.d-up-g{background:rgba(34,197,94,.12);color:var(--g1)}
+.d-dn-r{background:rgba(239,68,68,.12);color:var(--r1)}
+.d-up-r{background:rgba(239,68,68,.12);color:var(--r1)}
+.d-dn-g{background:rgba(34,197,94,.12);color:var(--g1)}
+.d-nt{background:rgba(245,158,11,.12);color:var(--am)}
+.kpi-bar{height:2px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-top:.6rem}
+.kpi-bar-f{height:100%;border-radius:2px;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
+.kpi-ai{font-size:.62rem;color:var(--t2);margin-top:.55rem;line-height:1.5;padding:.5rem .6rem;background:rgba(59,130,246,.04);border-left:2px solid rgba(59,130,246,.3);border-radius:0 6px 6px 0}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;width:100%;height:200px}
+.chart-wrap.tall{height:260px}
+.chart-wrap.xtall{height:320px}
+
+/* ── AI INSIGHT CARDS ── */
+.insight-card{border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:.7rem;transition:all .2s;cursor:pointer;background:rgba(255,255,255,.015)}
+.insight-card:hover{border-color:rgba(59,130,246,.25);background:rgba(59,130,246,.04)}
+.ic-head{display:flex;align-items:flex-start;gap:.7rem;margin-bottom:.5rem}
+.ic-sev{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.ic-sev.crit{background:var(--r1);box-shadow:0 0 8px var(--r1)}
+.ic-sev.high{background:var(--am);box-shadow:0 0 8px var(--am)}
+.ic-sev.med{background:var(--b1);box-shadow:0 0 8px var(--b1)}
+.ic-sev.low{background:var(--g1);box-shadow:0 0 8px var(--g1)}
+.ic-title{font-size:.8rem;font-weight:600;line-height:1.4}
+.ic-conf{margin-left:auto;font-family:var(--mono);font-size:.6rem;color:var(--t2);flex-shrink:0;padding:2px 7px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid var(--border)}
+.ic-body{font-size:.74rem;color:var(--t2);line-height:1.55;padding-left:1.5rem}
+.ic-foot{display:flex;align-items:center;gap:.5rem;padding-left:1.5rem;margin-top:.5rem}
+.ic-tag{font-size:.57rem;padding:2px 7px;border-radius:6px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.tag-risk{background:rgba(239,68,68,.1);color:var(--r2)}
+.tag-cash{background:rgba(6,182,212,.1);color:var(--cy2)}
+.tag-profit{background:rgba(34,197,94,.1);color:var(--g2)}
+.tag-warn{background:rgba(245,158,11,.1);color:var(--am2)}
+.tag-ai{background:rgba(168,85,247,.1);color:var(--pu2)}
+.ic-time{margin-left:auto;font-family:var(--mono);font-size:.58rem;color:var(--t3)}
+
+/* ── RISK METER ── */
+.risk-gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:1rem 0 .5rem}
+.risk-score-num{font-family:var(--syne);font-size:3rem;font-weight:800;text-align:center;background:linear-gradient(135deg,var(--am),var(--r1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.risk-score-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--am);text-align:center;margin-top:.3rem}
+.risk-cat{display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border-radius:10px;border:1px solid var(--border);margin-bottom:.4rem;background:rgba(255,255,255,.02)}
+.risk-cat-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.risk-cat-name{font-size:.76rem;font-weight:600}
+.risk-cat-score{margin-left:auto;font-family:var(--mono);font-size:.72rem;font-weight:700}
+.risk-bar-outer{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin:0 .7rem}
+.risk-bar-inner{height:100%;border-radius:2px;transition:width 1.4s cubic-bezier(.4,0,.2,1)}
+
+/* ── ALERT ITEMS ── */
+.alert-item{display:flex;align-items:flex-start;gap:.8rem;padding:.8rem;border-radius:12px;border:1px solid var(--border);margin-bottom:.5rem;background:rgba(255,255,255,.015);transition:all .2s}
+.alert-item:hover{transform:translateX(3px)}
+.alert-item.a-crit{border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04)}
+.alert-item.a-warn{border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.04)}
+.alert-item.a-info{border-color:rgba(59,130,246,.2);background:rgba(59,130,246,.04)}
+.alert-item.a-ok{border-color:rgba(34,197,94,.15);background:rgba(34,197,94,.03)}
+.ai-icon{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.ai-body{flex:1}
+.ai-title{font-size:.77rem;font-weight:700;margin-bottom:.2rem}
+.ai-desc{font-size:.7rem;color:var(--t2);line-height:1.5}
+.ai-time{font-family:var(--mono);font-size:.6rem;color:var(--t3);flex-shrink:0;margin-top:2px}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.75rem}
+th{padding:9px 12px;text-align:left;background:rgba(59,130,246,.03);color:var(--t2);font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border)}
+td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text)}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr:last-child td{border-bottom:none}
+
+/* ── SCENARIO LAB ── */
+.sim-slider-wrap{margin-bottom:1.1rem}
+.sim-slider-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.sim-slider-name{font-size:.76rem;font-weight:600}
+.sim-slider-val{font-family:var(--mono);font-size:.8rem;font-weight:700;color:var(--b2)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:rgba(255,255,255,.07);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--b1);border:2px solid #fff;box-shadow:0 0 10px rgba(59,130,246,.5);transition:transform .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+.sim-output-card{padding:1rem;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.02);text-align:center;transition:all .3s}
+.sim-output-val{font-family:var(--syne);font-size:1.6rem;font-weight:800;line-height:1.1;margin-bottom:.2rem;transition:color .3s}
+.sim-output-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--t2)}
+.sim-output-delta{font-family:var(--mono);font-size:.62rem;margin-top:.3rem;transition:color .3s}
+
+/* ── FORECAST ── */
+.fcast-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
+.fl-item{display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--t2)}
+.fl-dot{width:10px;height:3px;border-radius:2px;flex-shrink:0}
+
+/* ── METRIC ROWS ── */
+.metric-row{display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.metric-row:last-child{border-bottom:none}
+.mr-label{font-size:.75rem;color:var(--t2)}
+.mr-val{font-family:var(--mono);font-size:.78rem;font-weight:700;color:var(--text)}
+.mr-delta{font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:10px}
+
+/* ── DEPT TABLE ROWS ── */
+.dept-bar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-top:.3rem}
+.dept-bar-f{height:100%;border-radius:3px;transition:width 1.4s ease}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:6px;font-size:.6rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.b-green{background:rgba(34,197,94,.1);color:var(--g1);border:1px solid rgba(34,197,94,.2)}
+.b-red{background:rgba(239,68,68,.1);color:var(--r1);border:1px solid rgba(239,68,68,.2)}
+.b-amber{background:rgba(245,158,11,.1);color:var(--am);border:1px solid rgba(245,158,11,.2)}
+.b-blue{background:rgba(59,130,246,.1);color:var(--b2);border:1px solid rgba(59,130,246,.2)}
+.b-purple{background:rgba(168,85,247,.1);color:var(--pu2);border:1px solid rgba(168,85,247,.2)}
+
+/* ── LIQUIDITY METER ── */
+.liq-meter{height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin:.5rem 0}
+.liq-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--r1),var(--am),var(--g1));background-size:300% 100%;transition:background-position 1s ease;background-position:100% 0}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:1.2rem}
+.tab{flex:1;padding:6px 12px;border-radius:8px;text-align:center;font-size:.7rem;font-weight:600;cursor:pointer;color:var(--t2);transition:all .2s;white-space:nowrap}
+.tab.on{background:var(--s2);color:var(--text);box-shadow:0 1px 8px rgba(0,0,0,.3)}
+
+/* ── HEATMAP CELLS ── */
+.hm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:.5rem}
+.hm-cell{aspect-ratio:1;border-radius:4px;cursor:pointer;transition:all .2s;position:relative}
+.hm-cell:hover{transform:scale(1.15);z-index:10}
+.hm-label{font-size:.55rem;color:var(--t2);text-align:center;margin-bottom:.3rem}
+
+/* ── TIMELINE ── */
+.tl-wrap{position:relative;padding-left:1.5rem}
+.tl-item{position:relative;padding-bottom:1rem}
+.tl-item::before{content:'';position:absolute;left:-1.08rem;top:6px;bottom:0;width:1px;background:rgba(255,255,255,.07)}
+.tl-dot{position:absolute;left:-1.25rem;top:3px;width:8px;height:8px;border-radius:50%;border:2px solid var(--border);background:var(--bg)}
+.tl-text{font-size:.74rem;font-weight:600;margin-bottom:.15rem}
+.tl-meta{font-family:var(--mono);font-size:.6rem;color:var(--t2)}
+
+/* ── SCORE RING (SVG) ── */
+.score-ring-container{display:flex;justify-content:center;margin:.5rem 0}
+</style>
+</head>
+<body>
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <div class="pl-scan"></div>
+  <div class="pl-ring"><div class="pl-core"></div></div>
+  <div class="pl-logo">AXIOM</div>
+  <div class="pl-sub">Financial Intelligence System</div>
+  <div class="pl-bar-wrap"><div class="pl-bar" id="plBar"></div></div>
+  <div class="pl-msg" id="plMsg">Initializing financial modules...</div>
+</div>
+
+<!-- GRID BG -->
+<div id="grid-bg"></div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <div class="sb-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 16l3.5-6 3 4.5 2-2.5 2.5 4H3z"/></svg>
+        </div>
+        <div class="sb-logo-text">
+          <div class="logo-name">AXIOM</div>
+          <div class="logo-tagline">Finance · Intelligence</div>
+        </div>
+      </div>
+      <div class="sb-section">Intelligence</div>
+      <div class="nav-item on" data-view="overview">
+        <span class="nav-icon">⬡</span>
+        <span class="nav-label">Command Center</span>
+      </div>
+      <div class="nav-item" data-view="intelligence">
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">AI Intelligence Feed</span>
+        <span class="nav-badge warn">4</span>
+      </div>
+      <div class="sb-section">Analytics</div>
+      <div class="nav-item" data-view="cashflow">
+        <span class="nav-icon">⟳</span>
+        <span class="nav-label">Cash Flow Monitor</span>
+      </div>
+      <div class="nav-item" data-view="forecast">
+        <span class="nav-icon">⬀</span>
+        <span class="nav-label">Forecast Engine</span>
+      </div>
+      <div class="sb-section">Operations</div>
+      <div class="nav-item" data-view="risk">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Risk Intelligence</span>
+        <span class="nav-badge">2</span>
+      </div>
+      <div class="nav-item" data-view="scenario">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Scenario Lab</span>
+        <span class="nav-badge info">β</span>
+      </div>
+    </div>
+    <div class="sb-foot">
+      <button class="sb-mini-btn" id="sidebarToggle">← Collapse</button>
+      <div class="sb-pill">
+        <div class="sb-dot"></div>
+        <div class="sb-foot-text">
+          <div class="sb-ft1">Live · Connected</div>
+          <div class="sb-ft2">FY2025 · Q2 · Updated now</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrap">
+    <div class="topbar">
+      <div class="tb-title" id="topbarTitle">Executive Command Center</div>
+      <div class="tb-sep"></div>
+      <span class="tb-badge tb-ok">● Healthy</span>
+      <span class="tb-badge tb-warn">▲ 2 Risks</span>
+      <select class="tb-sel" id="periodSel">
+        <option>FY 2025</option>
+        <option>Q2 2025</option>
+        <option>Q1 2025</option>
+        <option>FY 2024</option>
+      </select>
+      <div class="tbtn ai-btn">✦ AI Copilot</div>
+      <div class="tbtn accent">⬇ Export</div>
+      <div class="tb-clock" id="topClock">--:--:--</div>
+      <div class="tb-avatar">CFO</div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ VIEW: COMMAND CENTER ══ -->
+      <div class="view on" id="view-overview">
+        <div class="pg-title">Financial <span style="background:linear-gradient(90deg,var(--b2),var(--cy));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Command Center</span></div>
+        <div class="pg-sub">Executive intelligence · Real-time operational visibility · FY2025 Q2</div>
+
+        <!-- 8 KPI Cards -->
+        <div class="g g4" style="margin-bottom:1rem">
+          <div class="card card-glow cg-blue">
+            <div class="kpi-label">Total Revenue <span class="badge b-blue">+18.4%</span></div>
+            <div class="kpi-val blue" id="kpi-rev">$247.8M</div>
+            <div class="kpi-delta d-up-g">▲ +$38.4M YoY</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:78%;background:linear-gradient(90deg,var(--b1),var(--cy))"></div></div>
+            <div class="kpi-ai">Enterprise segment growth driving Q2 outperformance vs $230M guidance.</div>
+          </div>
+          <div class="card card-glow cg-green">
+            <div class="kpi-label">EBITDA <span class="badge b-green">32.1%</span></div>
+            <div class="kpi-val green" id="kpi-ebitda">$79.6M</div>
+            <div class="kpi-delta d-up-g">▲ +$11.2M QoQ</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:64%;background:linear-gradient(90deg,var(--g1),var(--cy))"></div></div>
+            <div class="kpi-ai">Margin expansion driven by infrastructure efficiency gains across APAC.</div>
+          </div>
+          <div class="card card-glow cg-cyan">
+            <div class="kpi-label">Operating Margin <span class="badge b-blue">Target: 28%</span></div>
+            <div class="kpi-val blue">28.4%</div>
+            <div class="kpi-delta d-up-g">▲ +2.1pts YoY</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:71%;background:linear-gradient(90deg,var(--cy),var(--b1))"></div></div>
+            <div class="kpi-ai">Exceeding target margin for first time in 6 quarters. SG&A optimization effective.</div>
+          </div>
+          <div class="card card-glow cg-green">
+            <div class="kpi-label">Free Cash Flow <span class="badge b-green">Strong</span></div>
+            <div class="kpi-val green">$52.3M</div>
+            <div class="kpi-delta d-up-g">▲ +$8.9M vs Q1</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:83%;background:linear-gradient(90deg,var(--g1),var(--b1))"></div></div>
+            <div class="kpi-ai">FCF conversion at 65.7% of EBITDA — highest in 8 quarters. Strong signal.</div>
+          </div>
+          <div class="card card-glow cg-red">
+            <div class="kpi-label">Burn Rate <span class="badge b-red">Monitor</span></div>
+            <div class="kpi-val red">$4.2M/mo</div>
+            <div class="kpi-delta d-up-r">▲ +12% infrastructure scaling</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:42%;background:linear-gradient(90deg,var(--r1),var(--am))"></div></div>
+            <div class="kpi-ai">Operating costs increased 12% due to infrastructure scaling across APAC regions.</div>
+          </div>
+          <div class="card card-glow cg-amber">
+            <div class="kpi-label">Runway <span class="badge b-amber">24+ months</span></div>
+            <div class="kpi-val amber">26 mo</div>
+            <div class="kpi-delta d-nt">→ Stable at current burn</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:87%;background:linear-gradient(90deg,var(--g1),var(--am))"></div></div>
+            <div class="kpi-ai">Cash reserves sufficient through Q4 2027 without additional funding rounds.</div>
+          </div>
+          <div class="card card-glow cg-red">
+            <div class="kpi-label">Debt Exposure <span class="badge b-red">High</span></div>
+            <div class="kpi-val red">$38.5M</div>
+            <div class="kpi-delta d-dn-g">▼ –$2.1M this quarter</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:38%;background:linear-gradient(90deg,var(--r1),#fb923c)"></div></div>
+            <div class="kpi-ai">Debt-to-equity at 0.31. Term loan refinancing reduces rate from 6.8% to 5.4%.</div>
+          </div>
+          <div class="card card-glow cg-purple">
+            <div class="kpi-label">Net Profit <span class="badge b-purple">+24.6%</span></div>
+            <div class="kpi-val purple">$41.2M</div>
+            <div class="kpi-delta d-up-g">▲ +$8.2M vs Q2 2024</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:69%;background:linear-gradient(90deg,var(--pu),var(--b1))"></div></div>
+            <div class="kpi-ai">Net margin at 16.6%. Enterprise mix-shift contributing +3.1pts to profitability.</div>
+          </div>
+        </div>
+
+        <!-- Revenue Chart + Dept Performance -->
+        <div class="g g31" style="margin-bottom:1rem">
+          <div class="card">
+            <div class="sh">
+              <div class="sh-left"><div class="acbar"></div><div><div class="sh-title">Revenue Intelligence</div><div class="sh-sub">Monthly · Actuals vs Target · FY2025</div></div></div>
+              <div class="sh-actions">
+                <div class="tabs" style="margin:0">
+                  <div class="tab on" onclick="switchRevTab(this,'rev')">Revenue</div>
+                  <div class="tab" onclick="switchRevTab(this,'ebitda')">EBITDA</div>
+                  <div class="tab" onclick="switchRevTab(this,'margin')">Margin</div>
+                </div>
+              </div>
+            </div>
+            <div class="chart-wrap tall"><canvas id="revChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="sh">
+              <div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--pu),var(--b1))"></div><div><div class="sh-title">Revenue Mix</div><div class="sh-sub">By segment · Q2 2025</div></div></div>
+            </div>
+            <div class="chart-wrap" style="height:180px"><canvas id="mixChart"></canvas></div>
+            <div style="margin-top:.7rem">
+              <div class="metric-row"><span class="mr-label">Enterprise</span><span class="mr-val">$148.7M</span><span class="mr-delta d-up-g">+24%</span></div>
+              <div class="metric-row"><span class="mr-label">Mid-Market</span><span class="mr-val">$62.4M</span><span class="mr-delta d-nt">+6%</span></div>
+              <div class="metric-row"><span class="mr-label">SMB</span><span class="mr-val">$36.7M</span><span class="mr-delta d-dn-r">–3%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Department Performance -->
+        <div class="card">
+          <div class="sh">
+            <div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--am),var(--r1))"></div><div><div class="sh-title">Department Financial Analytics</div><div class="sh-sub">Cost efficiency · ROI · Burn contribution · Q2 2025</div></div></div>
+            <div class="sh-actions"><div class="badge b-blue">Cross-department intelligence</div></div>
+          </div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>Department</th><th>Budget</th><th>Actual Spend</th><th>Efficiency</th><th>ROI</th><th>Burn %</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>Sales</strong></td>
+                  <td>$32.0M</td>
+                  <td>$29.8M</td>
+                  <td><div style="display:flex;align-items:center;gap:.5rem"><div class="dept-bar" style="width:80px"><div class="dept-bar-f" style="width:93%;background:var(--g1)"></div></div>93%</div></td>
+                  <td style="color:var(--g1);font-family:var(--mono);font-weight:700">8.32x</td>
+                  <td style="font-family:var(--mono)">12.0%</td>
+                  <td><span class="badge b-green">Optimal</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Marketing</strong></td>
+                  <td>$18.5M</td>
+                  <td>$20.1M</td>
+                  <td><div style="display:flex;align-items:center;gap:.5rem"><div class="dept-bar" style="width:80px"><div class="dept-bar-f" style="width:72%;background:var(--am)"></div></div>72%</div></td>
+                  <td style="color:var(--am);font-family:var(--mono);font-weight:700">3.1x</td>
+                  <td style="font-family:var(--mono)">8.1%</td>
+                  <td><span class="badge b-amber">Over Budget</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Infrastructure</strong></td>
+                  <td>$14.0M</td>
+                  <td>$15.7M</td>
+                  <td><div style="display:flex;align-items:center;gap:.5rem"><div class="dept-bar" style="width:80px"><div class="dept-bar-f" style="width:58%;background:var(--r1)"></div></div>58%</div></td>
+                  <td style="color:var(--b2);font-family:var(--mono);font-weight:700">Infra</td>
+                  <td style="font-family:var(--mono)">6.3%</td>
+                  <td><span class="badge b-red">Critical</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Operations</strong></td>
+                  <td>$11.2M</td>
+                  <td>$10.4M</td>
+                  <td><div style="display:flex;align-items:center;gap:.5rem"><div class="dept-bar" style="width:80px"><div class="dept-bar-f" style="width:88%;background:var(--g1)"></div></div>88%</div></td>
+                  <td style="color:var(--g1);font-family:var(--mono);font-weight:700">4.8x</td>
+                  <td style="font-family:var(--mono)">4.2%</td>
+                  <td><span class="badge b-green">Efficient</span></td>
+                </tr>
+                <tr>
+                  <td><strong>HR &amp; People</strong></td>
+                  <td>$9.0M</td>
+                  <td>$8.6M</td>
+                  <td><div style="display:flex;align-items:center;gap:.5rem"><div class="dept-bar" style="width:80px"><div class="dept-bar-f" style="width:85%;background:var(--b1)"></div></div>85%</div></td>
+                  <td style="color:var(--t2);font-family:var(--mono);font-weight:700">Retention</td>
+                  <td style="font-family:var(--mono)">3.5%</td>
+                  <td><span class="badge b-blue">On Track</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Customer Support</strong></td>
+                  <td>$6.5M</td>
+                  <td>$6.1M</td>
+                  <td><div style="display:flex;align-items:center;gap:.5rem"><div class="dept-bar" style="width:80px"><div class="dept-bar-f" style="width:91%;background:var(--g1)"></div></div>91%</div></td>
+                  <td style="color:var(--g1);font-family:var(--mono);font-weight:700">5.6x</td>
+                  <td style="font-family:var(--mono)">2.5%</td>
+                  <td><span class="badge b-green">Optimal</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /overview -->
+
+      <!-- ══ VIEW: INTELLIGENCE FEED ══ -->
+      <div class="view" id="view-intelligence">
+        <div class="pg-title">AI Intelligence <span style="background:linear-gradient(90deg,var(--pu2),var(--b2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Feed</span></div>
+        <div class="pg-sub">Anomaly detection · Predictive signals · Risk explanations · Confidence scoring</div>
+        <div class="g g21" style="margin-bottom:1rem">
+          <div>
+            <div class="card" style="margin-bottom:.9rem">
+              <div class="sh">
+                <div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--pu),var(--b1))"></div><div><div class="sh-title">Live Intelligence Stream</div><div class="sh-sub">AI-generated · Continuously updated</div></div></div>
+                <div class="sh-actions">
+                  <div class="tabs" style="margin:0">
+                    <div class="tab on">All</div>
+                    <div class="tab">Critical</div>
+                    <div class="tab">Cash Flow</div>
+                    <div class="tab">Profit</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="insight-card">
+                <div class="ic-head">
+                  <div class="ic-sev crit"></div>
+                  <div class="ic-title">Marketing CAC Growth Outpacing Revenue Efficiency</div>
+                  <div class="ic-conf">94% conf</div>
+                </div>
+                <div class="ic-body">Marketing customer acquisition cost has grown 8.3% quarter-over-quarter while revenue efficiency (revenue per CAC dollar) has declined by 5.1%. This compression is unsustainable beyond Q3 if conversion rates don't improve. Mid-market funnel is the primary pressure point.</div>
+                <div class="ic-foot">
+                  <span class="ic-tag tag-risk">Risk</span>
+                  <span class="ic-tag tag-warn">CAC Compression</span>
+                  <span class="ic-time">2 min ago</span>
+                </div>
+              </div>
+
+              <div class="insight-card">
+                <div class="ic-head">
+                  <div class="ic-sev high"></div>
+                  <div class="ic-title">Enterprise Clients: 62% of Profit from 18% of Volume</div>
+                  <div class="ic-conf">98% conf</div>
+                </div>
+                <div class="ic-body">Enterprise clients generate 62% of total profitability despite representing only 18% of acquisition volume. Average enterprise contract value ($1.24M ARR) is 11.4x higher than mid-market. Strategic recommendation: accelerate enterprise sales headcount by 15% in Q3.</div>
+                <div class="ic-foot">
+                  <span class="ic-tag tag-profit">Profitability</span>
+                  <span class="ic-tag tag-ai">Strategic Signal</span>
+                  <span class="ic-time">8 min ago</span>
+                </div>
+              </div>
+
+              <div class="insight-card">
+                <div class="ic-head">
+                  <div class="ic-sev high"></div>
+                  <div class="ic-title">Infrastructure Spend Anomaly Detected: APAC Region</div>
+                  <div class="ic-conf">87% conf</div>
+                </div>
+                <div class="ic-body">APAC infrastructure costs increased 28% vs the 12% budgeted for Q2. The 16-point overrun translates to $2.3M in unplanned spend. Primary drivers appear to be data egress costs and over-provisioned compute. Immediate review recommended.</div>
+                <div class="ic-foot">
+                  <span class="ic-tag tag-risk">Anomaly</span>
+                  <span class="ic-tag tag-cash">Cost Overrun</span>
+                  <span class="ic-time">24 min ago</span>
+                </div>
+              </div>
+
+              <div class="insight-card">
+                <div class="ic-head">
+                  <div class="ic-sev med"></div>
+                  <div class="ic-title">Cash Conversion Cycle Improving — DSO Down 4.2 Days</div>
+                  <div class="ic-conf">96% conf</div>
+                </div>
+                <div class="ic-body">Days Sales Outstanding dropped from 42.1 to 37.9 days following the implementation of automated invoice follow-up systems in March. This improvement unlocks approximately $8.4M in additional working capital. Continue accelerating payment terms negotiations with enterprise clients.</div>
+                <div class="ic-foot">
+                  <span class="ic-tag tag-profit">Cash Flow</span>
+                  <span class="ic-tag tag-ai">Positive Signal</span>
+                  <span class="ic-time">1 hr ago</span>
+                </div>
+              </div>
+
+              <div class="insight-card">
+                <div class="ic-head">
+                  <div class="ic-sev med"></div>
+                  <div class="ic-title">Mid-Market Segment: Highest Revenue, Lowest Operational Margin</div>
+                  <div class="ic-conf">91% conf</div>
+                </div>
+                <div class="ic-body">Mid-market segment produces $62.4M in revenue (25% of total) but only 11.2% operating margin vs 38.4% for enterprise. High support burden and custom implementation costs are the primary margin suppressors. Product standardization for mid-market could improve margin by an estimated 8-12 points.</div>
+                <div class="ic-foot">
+                  <span class="ic-tag tag-profit">Margin Analysis</span>
+                  <span class="ic-tag tag-warn">Optimization Needed</span>
+                  <span class="ic-time">2 hr ago</span>
+                </div>
+              </div>
+
+              <div class="insight-card">
+                <div class="ic-head">
+                  <div class="ic-sev low"></div>
+                  <div class="ic-title">Vendor Concentration Risk: Top 3 Vendors = 41% of COGS</div>
+                  <div class="ic-conf">99% conf</div>
+                </div>
+                <div class="ic-body">Three key vendors represent 41.3% of total cost-of-goods-sold. Any pricing renegotiation or supply disruption from these vendors creates material P&amp;L exposure. Diversification to at least 6 vendors for critical infrastructure components recommended for risk resilience.</div>
+                <div class="ic-foot">
+                  <span class="ic-tag tag-risk">Vendor Risk</span>
+                  <span class="ic-tag tag-warn">Concentration</span>
+                  <span class="ic-time">3 hr ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Intelligence Panel -->
+          <div>
+            <div class="card" style="margin-bottom:.9rem">
+              <div class="sh-left" style="margin-bottom:.9rem"><div class="acbar" style="background:linear-gradient(var(--pu),var(--b1))"></div><div class="sh-title" style="font-size:.88rem">Intelligence Summary</div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem">
+                <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:.7rem;text-align:center">
+                  <div style="font-family:var(--syne);font-size:1.6rem;font-weight:800;color:var(--r1)">2</div>
+                  <div style="font-size:.6rem;color:var(--t2);text-transform:uppercase;letter-spacing:.1em">Critical</div>
+                </div>
+                <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:10px;padding:.7rem;text-align:center">
+                  <div style="font-family:var(--syne);font-size:1.6rem;font-weight:800;color:var(--am)">4</div>
+                  <div style="font-size:.6rem;color:var(--t2);text-transform:uppercase;letter-spacing:.1em">High</div>
+                </div>
+                <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:.7rem;text-align:center">
+                  <div style="font-family:var(--syne);font-size:1.6rem;font-weight:800;color:var(--b2)">7</div>
+                  <div style="font-size:.6rem;color:var(--t2);text-transform:uppercase;letter-spacing:.1em">Medium</div>
+                </div>
+                <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:.7rem;text-align:center">
+                  <div style="font-family:var(--syne);font-size:1.6rem;font-weight:800;color:var(--g1)">11</div>
+                  <div style="font-size:.6rem;color:var(--t2);text-transform:uppercase;letter-spacing:.1em">Low / Info</div>
+                </div>
+              </div>
+              <div class="metric-row"><span class="mr-label">Avg Confidence Score</span><span class="mr-val" style="color:var(--b2)">93.2%</span></div>
+              <div class="metric-row"><span class="mr-label">Signals Generated</span><span class="mr-val">24 today</span></div>
+              <div class="metric-row"><span class="mr-label">Actions Triggered</span><span class="mr-val">6</span></div>
+              <div class="metric-row"><span class="mr-label">Model</span><span class="mr-val" style="font-family:var(--mono);font-size:.65rem">AXIOM-FIN-v3.2</span></div>
+            </div>
+            <div class="card">
+              <div class="sh-left" style="margin-bottom:.9rem"><div class="acbar" style="background:linear-gradient(var(--am),var(--r1))"></div><div class="sh-title" style="font-size:.88rem">Top Risk Signals</div></div>
+              <div class="chart-wrap" style="height:160px"><canvas id="riskRadarChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /intelligence -->
+
+      <!-- ══ VIEW: CASH FLOW ══ -->
+      <div class="view" id="view-cashflow">
+        <div class="pg-title">Cash Flow <span style="background:linear-gradient(90deg,var(--cy2),var(--g2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Intelligence</span></div>
+        <div class="pg-sub">Liquidity monitoring · Inflow vs outflow · Reserve tracking · Burn runway</div>
+        <div class="g g4" style="margin-bottom:1rem">
+          <div class="card card-sm card-glow cg-green">
+            <div class="kpi-label">Net Cash Position</div>
+            <div class="kpi-val green" style="font-size:1.7rem">$108.4M</div>
+            <div class="kpi-delta d-up-g">▲ +$4.2M vs last month</div>
+          </div>
+          <div class="card card-sm card-glow cg-blue">
+            <div class="kpi-label">Monthly Inflows</div>
+            <div class="kpi-val blue" style="font-size:1.7rem">$22.6M</div>
+            <div class="kpi-delta d-up-g">▲ +8.4% MoM</div>
+          </div>
+          <div class="card card-sm card-glow cg-red">
+            <div class="kpi-label">Monthly Outflows</div>
+            <div class="kpi-val red" style="font-size:1.7rem">$18.4M</div>
+            <div class="kpi-delta d-up-r">▲ +12.1% (APAC scaling)</div>
+          </div>
+          <div class="card card-sm card-glow cg-amber">
+            <div class="kpi-label">Burn Runway</div>
+            <div class="kpi-val amber" style="font-size:1.7rem">26 mo</div>
+            <div class="kpi-delta d-nt">→ At current burn rate</div>
+          </div>
+        </div>
+        <div class="g g21" style="margin-bottom:1rem">
+          <div class="card">
+            <div class="sh">
+              <div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--cy),var(--g1))"></div><div><div class="sh-title">Inflow vs Outflow Analysis</div><div class="sh-sub">Weekly cash flow · Last 26 weeks</div></div></div>
+            </div>
+            <div class="chart-wrap xtall"><canvas id="cashChart"></canvas></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:.9rem">
+              <div class="sh-left" style="margin-bottom:.9rem"><div class="acbar" style="background:linear-gradient(var(--am),var(--r1))"></div><div class="sh-title" style="font-size:.88rem">Liquidity Stability</div></div>
+              <div style="margin-bottom:.6rem">
+                <div style="display:flex;justify-content:space-between;font-size:.68rem;margin-bottom:.3rem"><span style="color:var(--t2)">Current Ratio</span><span style="font-family:var(--mono);font-weight:700;color:var(--g1)">2.84</span></div>
+                <div class="liq-meter"><div class="liq-fill" style="width:71%;background-position:30% 0"></div></div>
+              </div>
+              <div style="margin-bottom:.6rem">
+                <div style="display:flex;justify-content:space-between;font-size:.68rem;margin-bottom:.3rem"><span style="color:var(--t2)">Quick Ratio</span><span style="font-family:var(--mono);font-weight:700;color:var(--b2)">1.92</span></div>
+                <div class="liq-meter"><div class="liq-fill" style="width:48%;background-position:50% 0"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:.68rem;margin-bottom:.3rem"><span style="color:var(--t2)">Cash Ratio</span><span style="font-family:var(--mono);font-weight:700;color:var(--am)">0.68</span></div>
+                <div class="liq-meter"><div class="liq-fill" style="width:17%;background-position:80% 0"></div></div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:.9rem">
+              <div class="sh-left" style="margin-bottom:.9rem"><div class="acbar" style="background:linear-gradient(var(--r1),var(--am))"></div><div class="sh-title" style="font-size:.88rem">Cash Pressure Points</div></div>
+              <div class="metric-row"><span class="mr-label">Payroll (monthly)</span><span class="mr-val" style="color:var(--r1)">$6.8M</span><span class="mr-delta d-up-r">▲ +4%</span></div>
+              <div class="metric-row"><span class="mr-label">Vendor Obligations</span><span class="mr-val">$4.2M</span><span class="mr-delta d-nt">→ Fixed</span></div>
+              <div class="metric-row"><span class="mr-label">Capex Pipeline</span><span class="mr-val">$3.1M</span><span class="mr-delta d-nt">→ Q3 planned</span></div>
+              <div class="metric-row"><span class="mr-label">Debt Service</span><span class="mr-val" style="color:var(--am)">$1.8M</span><span class="mr-delta d-dn-g">▼ –8% refi</span></div>
+              <div class="metric-row"><span class="mr-label">Reserve Floor</span><span class="mr-val" style="color:var(--g1)">$20M</span><span class="mr-delta d-nt">→ Policy min</span></div>
+            </div>
+            <div class="card">
+              <div class="sh-left" style="margin-bottom:.9rem"><div class="acbar" style="background:linear-gradient(var(--b1),var(--cy))"></div><div class="sh-title" style="font-size:.88rem">Runway Forecast</div></div>
+              <div class="chart-wrap" style="height:130px"><canvas id="runwayChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /cashflow -->
+
+      <!-- ══ VIEW: RISK ══ -->
+      <div class="view" id="view-risk">
+        <div class="pg-title">Risk <span style="background:linear-gradient(90deg,var(--r2),var(--am2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Intelligence</span></div>
+        <div class="pg-sub">Live risk scoring · Anomaly detection · Operational stress indicators · Mission-critical</div>
+        <div class="g g3" style="margin-bottom:1rem">
+          <div class="card" style="grid-row:span 2">
+            <div class="sh-left" style="margin-bottom:.5rem"><div class="acbar" style="background:linear-gradient(var(--am),var(--r1))"></div><div><div class="sh-title">Enterprise Risk Score</div><div class="sh-sub">Composite intelligence index</div></div></div>
+            <div class="score-ring-container">
+              <svg width="180" height="180" viewBox="0 0 180 180">
+                <circle cx="90" cy="90" r="72" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>
+                <circle cx="90" cy="90" r="72" fill="none" stroke="url(#riskGrad)" stroke-width="12"
+                  stroke-dasharray="452" stroke-dashoffset="136" stroke-linecap="round"
+                  transform="rotate(-90 90 90)"/>
+                <defs>
+                  <linearGradient id="riskGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#22c55e"/>
+                    <stop offset="50%" stop-color="#f59e0b"/>
+                    <stop offset="100%" stop-color="#ef4444"/>
+                  </linearGradient>
+                </defs>
+                <text x="90" y="82" text-anchor="middle" fill="#f59e0b" font-family="Syne,sans-serif" font-size="36" font-weight="800">68</text>
+                <text x="90" y="102" text-anchor="middle" fill="#94a3b8" font-family="DM Sans,sans-serif" font-size="10" font-weight="700" letter-spacing="2">/ 100</text>
+              </svg>
+            </div>
+            <div style="text-align:center;margin-bottom:1rem">
+              <div style="font-family:var(--syne);font-size:1rem;font-weight:700;color:var(--am)">ELEVATED</div>
+              <div style="font-size:.65rem;color:var(--t2);margin-top:.2rem">Risk threshold crossed · Action recommended</div>
+            </div>
+            <div class="metric-row"><span class="mr-label">Previous Score</span><span class="mr-val">61/100</span><span class="mr-delta d-up-r">▲ +7 pts</span></div>
+            <div class="metric-row"><span class="mr-label">30-Day Trend</span><span class="mr-val" style="color:var(--r1)">Worsening</span></div>
+            <div class="metric-row"><span class="mr-label">Peer Median</span><span class="mr-val">52/100</span><span class="mr-delta d-up-r">▲ Above avg</span></div>
+          </div>
+          <div class="card">
+            <div class="sh-left" style="margin-bottom:.8rem"><div class="acbar" style="background:linear-gradient(var(--r1),var(--am))"></div><div class="sh-title" style="font-size:.88rem">Risk Categories</div></div>
+            <div class="risk-cat">
+              <div class="risk-cat-dot" style="background:var(--r1)"></div>
+              <span class="risk-cat-name">Liquidity Risk</span>
+              <div class="risk-bar-outer"><div class="risk-bar-inner" style="width:78%;background:var(--r1)"></div></div>
+              <span class="risk-cat-score" style="color:var(--r1)">78</span>
+            </div>
+            <div class="risk-cat">
+              <div class="risk-cat-dot" style="background:var(--am)"></div>
+              <span class="risk-cat-name">Cost Overrun</span>
+              <div class="risk-bar-outer"><div class="risk-bar-inner" style="width:72%;background:var(--am)"></div></div>
+              <span class="risk-cat-score" style="color:var(--am)">72</span>
+            </div>
+            <div class="risk-cat">
+              <div class="risk-cat-dot" style="background:var(--am)"></div>
+              <span class="risk-cat-name">Vendor Dependency</span>
+              <div class="risk-bar-outer"><div class="risk-bar-inner" style="width:68%;background:var(--am)"></div></div>
+              <span class="risk-cat-score" style="color:var(--am)">68</span>
+            </div>
+            <div class="risk-cat">
+              <div class="risk-cat-dot" style="background:var(--b1)"></div>
+              <span class="risk-cat-name">Debt Concentration</span>
+              <div class="risk-bar-outer"><div class="risk-bar-inner" style="width:55%;background:var(--b1)"></div></div>
+              <span class="risk-cat-score" style="color:var(--b2)">55</span>
+            </div>
+            <div class="risk-cat">
+              <div class="risk-cat-dot" style="background:var(--b1)"></div>
+              <span class="risk-cat-name">Operational Efficiency</span>
+              <div class="risk-bar-outer"><div class="risk-bar-inner" style="width:48%;background:var(--b1)"></div></div>
+              <span class="risk-cat-score" style="color:var(--b2)">48</span>
+            </div>
+            <div class="risk-cat">
+              <div class="risk-cat-dot" style="background:var(--g1)"></div>
+              <span class="risk-cat-name">Cash Anomalies</span>
+              <div class="risk-bar-outer"><div class="risk-bar-inner" style="width:32%;background:var(--g1)"></div></div>
+              <span class="risk-cat-score" style="color:var(--g1)">32</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="sh-left" style="margin-bottom:.8rem"><div class="acbar" style="background:linear-gradient(var(--pu),var(--b1))"></div><div class="sh-title" style="font-size:.88rem">Risk Distribution</div></div>
+            <div class="chart-wrap" style="height:180px"><canvas id="riskDistChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="sh">
+            <div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--r1),var(--am))"></div><div><div class="sh-title">Active Risk Alert Feed</div><div class="sh-sub">Live anomaly detection · Severity-ranked</div></div></div>
+          </div>
+          <div class="alert-item a-crit">
+            <div class="ai-icon">🔴</div>
+            <div class="ai-body"><div class="ai-title">[CRITICAL] Infrastructure Spend: 28% Over Budget — APAC Region</div><div class="ai-desc">Cloud compute costs in APAC region exceeded $15.7M vs $14.0M budget. Unplanned auto-scaling events and data egress fees drove overrun. Immediate cost governance action required to prevent Q3 impact.</div></div>
+            <div class="ai-time">Now</div>
+          </div>
+          <div class="alert-item a-crit">
+            <div class="ai-icon">🔴</div>
+            <div class="ai-body"><div class="ai-title">[CRITICAL] CAC Efficiency Degrading — Marketing Spend ROI Below Threshold</div><div class="ai-desc">Customer acquisition cost rose to $8,400 (from $7,200 in Q1), while average contract value declined 3.2%. CAC payback period extended to 18 months. Immediate campaign optimization required.</div></div>
+            <div class="ai-time">1h</div>
+          </div>
+          <div class="alert-item a-warn">
+            <div class="ai-icon">🟡</div>
+            <div class="ai-body"><div class="ai-title">[WARNING] Vendor Concentration: Single-Source Dependency on 3 Critical Suppliers</div><div class="ai-desc">Top 3 vendors constitute 41.3% of COGS with no secondary suppliers qualified. Pricing renegotiations in Q3 could expose $18M in COGS risk. Diversification timeline: 6–9 months minimum.</div></div>
+            <div class="ai-time">3h</div>
+          </div>
+          <div class="alert-item a-warn">
+            <div class="ai-icon">🟡</div>
+            <div class="ai-body"><div class="ai-title">[WARNING] Receivables Aging: $12.4M Outstanding > 60 Days</div><div class="ai-desc">Accounts receivable aging analysis shows $12.4M (5.0% of quarterly revenue) outstanding beyond 60 days. Three enterprise clients account for 78% of this exposure. Collections team escalation initiated.</div></div>
+            <div class="ai-time">5h</div>
+          </div>
+          <div class="alert-item a-info">
+            <div class="ai-icon">🔵</div>
+            <div class="ai-body"><div class="ai-title">[INFO] FX Exposure: $8.2M EUR/USD Position Unhedged</div><div class="ai-desc">European revenue of €7.6M carries FX exposure at current EUR/USD rates. A 5% USD strengthening would reduce reported revenue by ~$410K. Treasury team evaluating forward contract hedging strategies.</div></div>
+            <div class="ai-time">8h</div>
+          </div>
+          <div class="alert-item a-ok">
+            <div class="ai-icon">🟢</div>
+            <div class="ai-body"><div class="ai-title">[RESOLVED] Q1 Debt Covenant Breach Risk — Term Loan Refinanced</div><div class="ai-desc">Revolving credit facility successfully refinanced at 5.4% (from 6.8%). Debt service coverage ratio now 3.2x vs covenant minimum of 1.25x. Risk fully mitigated through Q4 2026.</div></div>
+            <div class="ai-time">Yesterday</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="sh">
+            <div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--b1),var(--cy))"></div><div><div class="sh-title">Risk Timeline</div><div class="sh-sub">30-day event history</div></div></div>
+          </div>
+          <div class="tl-wrap">
+            <div class="tl-item"><div class="tl-dot" style="background:var(--r1);border-color:var(--r1)"></div><div class="tl-text">Infrastructure cost overrun detected — APAC compute anomaly</div><div class="tl-meta">Today · AI Score 8.4 · 3.2σ deviation from baseline</div></div>
+            <div class="tl-item"><div class="tl-dot" style="background:var(--am);border-color:var(--am)"></div><div class="tl-text">CAC efficiency warning — Mid-market conversion rate decline</div><div class="tl-meta">2 days ago · Triggered: CAC > $8,000 threshold</div></div>
+            <div class="tl-item"><div class="tl-dot" style="background:var(--am);border-color:var(--am)"></div><div class="tl-text">Receivables aging alert — Enterprise client payment delay</div><div class="tl-meta">4 days ago · $12.4M at 60+ day mark</div></div>
+            <div class="tl-item"><div class="tl-dot" style="background:var(--b1);border-color:var(--b1)"></div><div class="tl-text">FX exposure flagged — EUR/USD position review initiated</div><div class="tl-meta">6 days ago · €7.6M unhedged position identified</div></div>
+            <div class="tl-item"><div class="tl-dot" style="background:var(--g1);border-color:var(--g1)"></div><div class="tl-text">Debt covenant risk resolved — Refinancing completed</div><div class="tl-meta">12 days ago · Rate: 6.8% → 5.4% · Risk cleared</div></div>
+          </div>
+        </div>
+      </div><!-- /risk -->
+
+      <!-- ══ VIEW: FORECAST ══ -->
+      <div class="view" id="view-forecast">
+        <div class="pg-title">Predictive <span style="background:linear-gradient(90deg,var(--pu2),var(--cy2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Forecast Engine</span></div>
+        <div class="pg-sub">Quarterly projections · Confidence intervals · Sensitivity analysis · Predictive trend modeling</div>
+        <div class="g g4" style="margin-bottom:1rem">
+          <div class="card card-sm card-glow cg-blue">
+            <div class="kpi-label">Q3 Revenue Forecast</div>
+            <div class="kpi-val blue" style="font-size:1.6rem">$68.4M</div>
+            <div class="kpi-delta d-up-g">▲ +10.2% vs Q2</div>
+            <div style="font-family:var(--mono);font-size:.62rem;color:var(--t2);margin-top:.3rem">CI: $64.1M – $72.8M</div>
+          </div>
+          <div class="card card-sm card-glow cg-green">
+            <div class="kpi-label">Q3 EBITDA Forecast</div>
+            <div class="kpi-val green" style="font-size:1.6rem">$22.8M</div>
+            <div class="kpi-delta d-up-g">▲ Margin: 33.3%</div>
+            <div style="font-family:var(--mono);font-size:.62rem;color:var(--t2);margin-top:.3rem">CI: $20.4M – $25.2M</div>
+          </div>
+          <div class="card card-sm card-glow cg-amber">
+            <div class="kpi-label">FY2025 Revenue</div>
+            <div class="kpi-val amber" style="font-size:1.6rem">$264M</div>
+            <div class="kpi-delta d-up-g">▲ +6.6% vs guidance</div>
+            <div style="font-family:var(--mono);font-size:.62rem;color:var(--t2);margin-top:.3rem">CI: $252M – $278M</div>
+          </div>
+          <div class="card card-sm card-glow cg-purple">
+            <div class="kpi-label">Model Confidence</div>
+            <div class="kpi-val purple" style="font-size:1.6rem">91.4%</div>
+            <div class="kpi-delta d-up-g">▲ 18-month lookback</div>
+            <div style="font-family:var(--mono);font-size:.62rem;color:var(--t2);margin-top:.3rem">MAPE: 3.2% on validation set</div>
+          </div>
+        </div>
+        <div class="g g21" style="margin-bottom:1rem">
+          <div class="card">
+            <div class="sh">
+              <div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--pu),var(--cy))"></div><div><div class="sh-title">Revenue Forecast with Confidence Intervals</div><div class="sh-sub">Actuals + 6-month forward projection · 80% CI band</div></div></div>
+            </div>
+            <div class="fcast-legend">
+              <div class="fl-item"><div class="fl-dot" style="background:var(--b1)"></div>Actual Revenue</div>
+              <div class="fl-item"><div class="fl-dot" style="background:var(--pu)"></div>Forecast</div>
+              <div class="fl-item"><div class="fl-dot" style="background:rgba(168,85,247,.3);height:8px;border-radius:3px;width:16px"></div>80% Confidence Interval</div>
+            </div>
+            <div class="chart-wrap xtall"><canvas id="forecastChart"></canvas></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:.9rem">
+              <div class="sh-left" style="margin-bottom:.9rem"><div class="acbar" style="background:linear-gradient(var(--pu),var(--b1))"></div><div class="sh-title" style="font-size:.88rem">Sensitivity Analysis</div></div>
+              <div class="tw">
+                <table>
+                  <thead><tr><th>Factor</th><th>Impact on EBITDA</th><th>Probability</th></tr></thead>
+                  <tbody>
+                    <tr><td>+10% Enterprise Win Rate</td><td style="color:var(--g1);font-family:var(--mono)">+$4.8M</td><td><span class="badge b-blue">42%</span></td></tr>
+                    <tr><td>Infra Costs +15%</td><td style="color:var(--r1);font-family:var(--mono)">–$2.4M</td><td><span class="badge b-amber">61%</span></td></tr>
+                    <tr><td>Churn Rate +2pts</td><td style="color:var(--r1);font-family:var(--mono)">–$6.2M</td><td><span class="badge b-green">18%</span></td></tr>
+                    <tr><td>FX Headwind (EUR)</td><td style="color:var(--am);font-family:var(--mono)">–$1.1M</td><td><span class="badge b-amber">55%</span></td></tr>
+                    <tr><td>Europe Expansion</td><td style="color:var(--am);font-family:var(--mono)">–$3.8M Y1</td><td><span class="badge b-blue">35%</span></td></tr>
+                    <tr><td>Headcount +20%</td><td style="color:var(--r1);font-family:var(--mono)">–$5.2M</td><td><span class="badge b-blue">28%</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="sh-left" style="margin-bottom:.9rem"><div class="acbar" style="background:linear-gradient(var(--cy),var(--g1))"></div><div class="sh-title" style="font-size:.88rem">Margin Forecast</div></div>
+              <div class="chart-wrap" style="height:150px"><canvas id="marginChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /forecast -->
+
+      <!-- ══ VIEW: SCENARIO LAB ══ -->
+      <div class="view" id="view-scenario">
+        <div class="pg-title">Scenario <span style="background:linear-gradient(90deg,var(--cy2),var(--b3));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Simulation Lab</span></div>
+        <div class="pg-sub">Executive strategy laboratory · Interactive modeling · Live recalculation · Institutional precision</div>
+        <div style="background:rgba(59,130,246,.04);border:1px solid rgba(59,130,246,.12);border-radius:14px;padding:.9rem 1.1rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:.8rem">
+          <span style="font-size:1rem">⚗</span>
+          <span style="font-size:.76rem;color:var(--t2)">Adjust the parameters below to model financial scenarios. All outputs recalculate in real-time against base case FY2025 projections.</span>
+          <button class="tbtn" style="margin-left:auto;flex-shrink:0" onclick="resetScenario()">↺ Reset</button>
+        </div>
+        <div class="g g21" style="margin-bottom:1rem">
+          <div class="card">
+            <div class="sh"><div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--cy),var(--pu))"></div><div><div class="sh-title">Scenario Parameters</div><div class="sh-sub">Drag sliders to model impact</div></div></div></div>
+            <div class="sim-slider-wrap">
+              <div class="sim-slider-head"><span class="sim-slider-name">Operating Cost Change</span><span class="sim-slider-val" id="v-opcost">0%</span></div>
+              <input type="range" min="-30" max="30" value="0" id="s-opcost" oninput="updateScenario()">
+              <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.58rem;color:var(--t3);margin-top:.2rem"><span>–30%</span><span>Base</span><span>+30%</span></div>
+            </div>
+            <div class="sim-slider-wrap">
+              <div class="sim-slider-head"><span class="sim-slider-name">Marketing Spend Change</span><span class="sim-slider-val" id="v-mktg">0%</span></div>
+              <input type="range" min="-40" max="40" value="0" id="s-mktg" oninput="updateScenario()">
+              <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.58rem;color:var(--t3);margin-top:.2rem"><span>–40%</span><span>Base</span><span>+40%</span></div>
+            </div>
+            <div class="sim-slider-wrap">
+              <div class="sim-slider-head"><span class="sim-slider-name">Revenue Growth Rate</span><span class="sim-slider-val" id="v-growth">18%</span></div>
+              <input type="range" min="0" max="40" value="18" id="s-growth" oninput="updateScenario()">
+              <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.58rem;color:var(--t3);margin-top:.2rem"><span>0%</span><span>18% (base)</span><span>40%</span></div>
+            </div>
+            <div class="sim-slider-wrap">
+              <div class="sim-slider-head"><span class="sim-slider-name">Headcount Increase</span><span class="sim-slider-val" id="v-hc">0%</span></div>
+              <input type="range" min="0" max="50" value="0" id="s-hc" oninput="updateScenario()">
+              <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.58rem;color:var(--t3);margin-top:.2rem"><span>No change</span><span>+25%</span><span>+50%</span></div>
+            </div>
+            <div class="sim-slider-wrap">
+              <div class="sim-slider-head"><span class="sim-slider-name">Infrastructure Cost Δ</span><span class="sim-slider-val" id="v-infra">0%</span></div>
+              <input type="range" min="-20" max="40" value="0" id="s-infra" oninput="updateScenario()">
+              <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.58rem;color:var(--t3);margin-top:.2rem"><span>–20%</span><span>Base</span><span>+40%</span></div>
+            </div>
+            <div class="sim-slider-wrap">
+              <div class="sim-slider-head"><span class="sim-slider-name">Churn Rate Δ</span><span class="sim-slider-val" id="v-churn">0pts</span></div>
+              <input type="range" min="-5" max="10" value="0" id="s-churn" oninput="updateScenario()">
+              <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.58rem;color:var(--t3);margin-top:.2rem"><span>–5pts</span><span>Base (8%)</span><span>+10pts</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="g g2" style="margin-bottom:.9rem">
+              <div class="sim-output-card"><div class="sim-output-val" id="out-rev" style="color:var(--b2)">$264M</div><div class="sim-output-label">Projected Revenue</div><div class="sim-output-delta" id="out-rev-d" style="color:var(--t2)">Base case</div></div>
+              <div class="sim-output-card"><div class="sim-output-val" id="out-ebitda" style="color:var(--g1)">$84.8M</div><div class="sim-output-label">Projected EBITDA</div><div class="sim-output-delta" id="out-ebitda-d" style="color:var(--t2)">Base case · 32.1%</div></div>
+              <div class="sim-output-card"><div class="sim-output-val" id="out-runway" style="color:var(--am)">26 mo</div><div class="sim-output-label">Cash Runway</div><div class="sim-output-delta" id="out-runway-d" style="color:var(--t2)">Base case</div></div>
+              <div class="sim-output-card"><div class="sim-output-val" id="out-margin" style="color:var(--cy)">32.1%</div><div class="sim-output-label">EBITDA Margin</div><div class="sim-output-delta" id="out-margin-d" style="color:var(--t2)">Base case</div></div>
+              <div class="sim-output-card"><div class="sim-output-val" id="out-fcf" style="color:var(--g1)">$55.4M</div><div class="sim-output-label">Free Cash Flow</div><div class="sim-output-delta" id="out-fcf-d" style="color:var(--t2)">Base case</div></div>
+              <div class="sim-output-card"><div class="sim-output-val" id="out-risk" style="color:var(--am)">Elevated</div><div class="sim-output-label">Risk Classification</div><div class="sim-output-delta" id="out-risk-d" style="color:var(--t2)">Score: 68/100</div></div>
+            </div>
+            <div class="card">
+              <div class="sh-left" style="margin-bottom:.9rem"><div class="acbar" style="background:linear-gradient(var(--cy),var(--pu))"></div><div class="sh-title" style="font-size:.88rem">Scenario Impact Visualization</div></div>
+              <div class="chart-wrap tall"><canvas id="scenarioChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+        <!-- Preset scenarios -->
+        <div class="card">
+          <div class="sh"><div class="sh-left"><div class="acbar" style="background:linear-gradient(var(--am),var(--pu))"></div><div><div class="sh-title">Preset Scenario Templates</div><div class="sh-sub">Common strategic scenarios · Click to apply</div></div></div></div>
+          <div class="g g3">
+            <div style="border:1px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.01)" onclick="applyScenario('europe')" onmouseover="this.style.borderColor='rgba(59,130,246,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+              <div style="font-size:.9rem;margin-bottom:.4rem">🌍</div>
+              <div style="font-family:var(--syne);font-size:.85rem;font-weight:700;margin-bottom:.3rem">Europe Expansion</div>
+              <div style="font-size:.7rem;color:var(--t2);line-height:1.5">+25% infra costs, +20% headcount, +12% revenue growth. Models Y1 expansion economics.</div>
+            </div>
+            <div style="border:1px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.01)" onclick="applyScenario('austerity')" onmouseover="this.style.borderColor='rgba(34,197,94,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+              <div style="font-size:.9rem;margin-bottom:.4rem">✂</div>
+              <div style="font-family:var(--syne);font-size:.85rem;font-weight:700;margin-bottom:.3rem">Cost Austerity</div>
+              <div style="font-size:.7rem;color:var(--t2);line-height:1.5">–20% marketing, –15% operating costs, freeze headcount. Maximizes runway and EBITDA margin.</div>
+            </div>
+            <div style="border:1px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.01)" onclick="applyScenario('growth')" onmouseover="this.style.borderColor='rgba(168,85,247,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+              <div style="font-size:.9rem;margin-bottom:.4rem">🚀</div>
+              <div style="font-family:var(--syne);font-size:.85rem;font-weight:700;margin-bottom:.3rem">Aggressive Growth</div>
+              <div style="font-size:.7rem;color:var(--t2);line-height:1.5">+40% marketing, +30% headcount, 35% revenue target. Tests cash burn tolerance for hyper-growth.</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /scenario -->
+
+    </div><!-- /content -->
+  </div><!-- /main-wrap -->
+</div><!-- /app -->
+
+<script>
+// ── PRELOADER ──────────────────────────────────────────────────
+const plMessages = [
+  'Initializing financial modules...',
+  'Loading revenue intelligence data...',
+  'Connecting AI analytics engine...',
+  'Calibrating risk scoring models...',
+  'Synchronizing cash flow monitors...',
+  'Building forecast confidence intervals...',
+  'Validating scenario simulation parameters...',
+  'System ready. Welcome to AXIOM.'
+];
+let plIdx = 0, plPct = 0;
+const plBar = document.getElementById('plBar');
+const plMsg = document.getElementById('plMsg');
+const plInterval = setInterval(() => {
+  plPct += 100 / plMessages.length;
+  plBar.style.width = Math.min(plPct, 100) + '%';
+  plMsg.textContent = plMessages[Math.min(plIdx, plMessages.length - 1)];
+  plIdx++;
+  if (plPct >= 100) {
+    clearInterval(plInterval);
+    setTimeout(() => {
+      document.getElementById('preloader').style.opacity = '0';
+      document.getElementById('preloader').style.transition = 'opacity .5s';
+      setTimeout(() => {
+        document.getElementById('preloader').style.display = 'none';
+        document.getElementById('app').style.opacity = '1';
+        initCharts();
+      }, 500);
+    }, 400);
+  }
+}, 340);
+
+// ── CLOCK ──────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('topClock').textContent =
+    now.toLocaleTimeString('en-US', {hour12:false}) + ' UTC';
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── NAVIGATION ──────────────────────────────────────────────────
+const navItems = document.querySelectorAll('.nav-item');
+const views = document.querySelectorAll('.view');
+const viewTitles = {
+  overview: 'Executive Command Center',
+  intelligence: 'AI Intelligence Feed',
+  cashflow: 'Cash Flow Intelligence',
+  risk: 'Risk Intelligence System',
+  forecast: 'Predictive Forecast Engine',
+  scenario: 'Scenario Simulation Lab'
+};
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const v = item.dataset.view;
+    if (!v) return;
+    navItems.forEach(n => n.classList.remove('on'));
+    item.classList.add('on');
+    views.forEach(view => view.classList.remove('on'));
+    document.getElementById('view-' + v).classList.add('on');
+    document.getElementById('topbarTitle').textContent = viewTitles[v] || v;
+  });
+});
+
+// ── SIDEBAR TOGGLE ──────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+sidebarToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('mini');
+  sidebarToggle.textContent = sidebar.classList.contains('mini') ? '→' : '← Collapse';
+});
+
+// ── CHART DEFAULTS ─────────────────────────────────────────────
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 10;
+const gridOpts = {color: 'rgba(255,255,255,.04)', drawBorder: false};
+const tickOpts = {color: '#475569', maxRotation: 0};
+
+function makeGradient(ctx, top, bottom) {
+  const g = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+  g.addColorStop(0, top);
+  g.addColorStop(1, bottom);
+  return g;
+}
+
+// ── REVENUE CHART ───────────────────────────────────────────────
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const revData = [18.2,19.4,20.1,21.6,22.3,23.8,21.9,23.4,24.6,25.8,26.4,28.1];
+const targetData = [18.0,19.0,20.0,21.0,22.0,23.0,23.5,24.0,24.5,25.0,25.5,26.0];
+const ebitdaData = [5.6,6.1,6.4,6.9,7.2,7.8,7.0,7.6,8.0,8.4,8.7,9.2];
+const marginData = [30.8,31.4,31.8,31.9,32.3,32.8,31.9,32.5,32.5,32.6,33.0,32.7];
+
+let revChart;
+function initRevChart(mode = 'rev') {
+  if (revChart) revChart.destroy();
+  const ctx = document.getElementById('revChart').getContext('2d');
+  const cfg = {
+    rev: {
+      datasets: [
+        {label:'Revenue ($M)', data: revData, borderColor:'#3b82f6', backgroundColor: (() => {const g=ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(59,130,246,.25)');g.addColorStop(1,'rgba(59,130,246,.01)');return g})(), fill:true, tension:.4, pointRadius:3, pointBackgroundColor:'#3b82f6', borderWidth:2},
+        {label:'Target ($M)', data: targetData, borderColor:'rgba(148,163,184,.3)', borderDash:[4,3], fill:false, tension:.4, pointRadius:0, borderWidth:1.5}
+      ]
+    },
+    ebitda: {
+      datasets: [{label:'EBITDA ($M)', data: ebitdaData, borderColor:'#22c55e', backgroundColor: (() => {const g=ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(34,197,94,.22)');g.addColorStop(1,'rgba(34,197,94,.01)');return g})(), fill:true, tension:.4, pointRadius:3, pointBackgroundColor:'#22c55e', borderWidth:2}]
+    },
+    margin: {
+      datasets: [{label:'EBITDA Margin (%)', data: marginData, borderColor:'#a855f7', backgroundColor: (() => {const g=ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(168,85,247,.2)');g.addColorStop(1,'rgba(168,85,247,.01)');return g})(), fill:true, tension:.4, pointRadius:3, pointBackgroundColor:'#a855f7', borderWidth:2}]
+    }
+  };
+  revChart = new Chart(ctx, {type:'line', data:{labels: months, datasets: cfg[mode].datasets}, options:{
+    responsive:true, maintainAspectRatio:false, animation:{duration:600},
+    plugins:{legend:{display:true, position:'top', labels:{boxWidth:10,padding:12,font:{size:10}}}, tooltip:{mode:'index', intersect:false, backgroundColor:'rgba(7,11,21,.95)', borderColor:'rgba(59,130,246,.2)', borderWidth:1, padding:10}},
+    scales:{x:{grid:gridOpts, ticks:tickOpts}, y:{grid:gridOpts, ticks:tickOpts, beginAtZero:false}}
+  }});
+}
+
+function switchRevTab(el, mode) {
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  initRevChart(mode);
+}
+
+// ── MIX CHART (DOUGHNUT) ───────────────────────────────────────
+function initMixChart() {
+  const ctx = document.getElementById('mixChart').getContext('2d');
+  new Chart(ctx, {type:'doughnut', data:{
+    labels:['Enterprise','Mid-Market','SMB'],
+    datasets:[{data:[148.7,62.4,36.7], backgroundColor:['rgba(59,130,246,.8)','rgba(168,85,247,.7)','rgba(6,182,212,.6)'], borderColor:['#3b82f6','#a855f7','#06b6d4'], borderWidth:1.5, hoverOffset:6}]
+  }, options:{responsive:true, maintainAspectRatio:false, animation:{duration:800},
+    plugins:{legend:{display:false}, tooltip:{backgroundColor:'rgba(7,11,21,.95)', borderColor:'rgba(59,130,246,.2)', borderWidth:1}},
+    cutout:'68%'
+  }});
+}
+
+// ── CASH FLOW CHART ─────────────────────────────────────────────
+function initCashChart() {
+  const ctx = document.getElementById('cashChart').getContext('2d');
+  const wks = Array.from({length:26}, (_,i) => `W${i+1}`);
+  const inflows = [20.1,21.3,19.8,22.6,23.4,20.8,21.9,24.2,22.7,25.1,23.8,22.4,24.6,26.1,23.2,25.8,24.4,22.9,26.3,27.1,24.8,26.7,28.2,25.6,27.8,29.3];
+  const outflows = [16.8,17.4,16.2,17.9,19.1,17.3,18.4,18.8,17.6,19.2,18.7,17.9,19.8,20.4,18.1,19.7,18.9,17.8,20.1,21.3,19.4,20.8,21.7,19.6,21.2,22.4];
+  const ig = ctx.createLinearGradient(0,0,0,320);
+  ig.addColorStop(0,'rgba(34,197,94,.3)');ig.addColorStop(1,'rgba(34,197,94,.02)');
+  const og = ctx.createLinearGradient(0,0,0,320);
+  og.addColorStop(0,'rgba(239,68,68,.25)');og.addColorStop(1,'rgba(239,68,68,.02)');
+  new Chart(ctx, {type:'line', data:{labels:wks,
+    datasets:[
+      {label:'Inflows ($M)', data:inflows, borderColor:'#22c55e', backgroundColor:ig, fill:true, tension:.4, pointRadius:0, borderWidth:2},
+      {label:'Outflows ($M)', data:outflows, borderColor:'#ef4444', backgroundColor:og, fill:true, tension:.4, pointRadius:0, borderWidth:2}
+    ]
+  }, options:{responsive:true, maintainAspectRatio:false, animation:{duration:800},
+    plugins:{legend:{display:true, position:'top', labels:{boxWidth:10,padding:12}}, tooltip:{mode:'index', intersect:false, backgroundColor:'rgba(7,11,21,.95)', borderColor:'rgba(255,255,255,.1)', borderWidth:1, padding:10}},
+    scales:{x:{grid:gridOpts, ticks:{...tickOpts,maxTicksLimit:13}}, y:{grid:gridOpts, ticks:tickOpts}}
+  }});
+}
+
+// ── RUNWAY CHART ────────────────────────────────────────────────
+function initRunwayChart() {
+  const ctx = document.getElementById('runwayChart').getContext('2d');
+  const rmonths = ['Now','Q3 25','Q4 25','Q1 26','Q2 26','Q3 26','Q4 26'];
+  const reserves = [108.4, 98.2, 88.8, 80.4, 73.1, 67.8, 63.4];
+  const g = ctx.createLinearGradient(0,0,0,130);
+  g.addColorStop(0,'rgba(245,158,11,.3)');g.addColorStop(1,'rgba(245,158,11,.02)');
+  new Chart(ctx, {type:'line', data:{labels:rmonths,
+    datasets:[{label:'Cash Reserves ($M)', data:reserves, borderColor:'#f59e0b', backgroundColor:g, fill:true, tension:.4, pointRadius:3, pointBackgroundColor:'#f59e0b', borderWidth:2}]
+  }, options:{responsive:true, maintainAspectRatio:false, animation:{duration:700},
+    plugins:{legend:{display:false}, tooltip:{backgroundColor:'rgba(7,11,21,.95)', borderColor:'rgba(245,158,11,.2)', borderWidth:1, padding:8}},
+    scales:{x:{grid:gridOpts, ticks:tickOpts}, y:{grid:gridOpts, ticks:tickOpts, beginAtZero:false}}
+  }});
+}
+
+// ── RISK RADAR CHART ────────────────────────────────────────────
+function initRiskRadarChart() {
+  const ctx = document.getElementById('riskRadarChart').getContext('2d');
+  new Chart(ctx, {type:'radar', data:{
+    labels:['CAC Growth','Infra Cost','Vendor Conc.','Liquidity','Receivables','FX Exposure'],
+    datasets:[
+      {label:'Current', data:[82,78,68,45,62,38], borderColor:'rgba(239,68,68,.8)', backgroundColor:'rgba(239,68,68,.08)', pointBackgroundColor:'#ef4444', borderWidth:1.5, pointRadius:3},
+      {label:'Target', data:[50,50,40,30,40,30], borderColor:'rgba(34,197,94,.5)', backgroundColor:'rgba(34,197,94,.05)', pointBackgroundColor:'#22c55e', borderWidth:1, borderDash:[3,3], pointRadius:2}
+    ]
+  }, options:{responsive:true, maintainAspectRatio:false, animation:{duration:800},
+    plugins:{legend:{display:false}, tooltip:{backgroundColor:'rgba(7,11,21,.95)', borderColor:'rgba(239,68,68,.2)', borderWidth:1, padding:8}},
+    scales:{r:{backgroundColor:'rgba(255,255,255,.01)', grid:{color:'rgba(255,255,255,.05)'}, angleLines:{color:'rgba(255,255,255,.06)'}, pointLabels:{color:'#94a3b8', font:{size:9}}, ticks:{display:false}, suggestedMin:0, suggestedMax:100}}
+  }});
+}
+
+// ── RISK DIST CHART ─────────────────────────────────────────────
+function initRiskDistChart() {
+  const ctx = document.getElementById('riskDistChart').getContext('2d');
+  new Chart(ctx, {type:'doughnut', data:{
+    labels:['Critical','Elevated','Moderate','Low'],
+    datasets:[{data:[15,35,32,18], backgroundColor:['rgba(239,68,68,.8)','rgba(245,158,11,.75)','rgba(59,130,246,.7)','rgba(34,197,94,.6)'], borderWidth:1.5, borderColor:['#ef4444','#f59e0b','#3b82f6','#22c55e'], hoverOffset:4}]
+  }, options:{responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:true, position:'bottom', labels:{boxWidth:8, padding:10, font:{size:9}}}, tooltip:{backgroundColor:'rgba(7,11,21,.95)', padding:8}},
+    cutout:'60%'
+  }});
+}
+
+// ── FORECAST CHART ──────────────────────────────────────────────
+function initForecastChart() {
+  const ctx = document.getElementById('forecastChart').getContext('2d');
+  const allMonths = ['Jul 24','Aug','Sep','Oct','Nov','Dec','Jan 25','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec 25'];
+  const actuals  = [18.4,19.1,20.2,21.0,22.1,23.3,19.8,20.9,21.6,22.8,23.4,24.8,null,null,null,null,null,null];
+  const forecast = [null,null,null,null,null,null,null,null,null,null,null,24.8,26.1,27.4,28.8,30.1,31.6,33.2];
+  const fUpper   = [null,null,null,null,null,null,null,null,null,null,null,24.8,27.9,29.8,31.4,33.2,35.1,37.4];
+  const fLower   = [null,null,null,null,null,null,null,null,null,null,null,24.8,24.3,25.0,26.2,27.0,28.1,29.0];
+  const gA=ctx.createLinearGradient(0,0,0,320);gA.addColorStop(0,'rgba(59,130,246,.3)');gA.addColorStop(1,'rgba(59,130,246,.03)');
+  const gF=ctx.createLinearGradient(0,0,0,320);gF.addColorStop(0,'rgba(168,85,247,.15)');gF.addColorStop(1,'rgba(168,85,247,.01)');
+  new Chart(ctx, {type:'line', data:{labels:allMonths, datasets:[
+    {label:'CI Upper', data:fUpper, borderColor:'transparent', backgroundColor:'rgba(168,85,247,.12)', fill:'+1', tension:.4, pointRadius:0},
+    {label:'CI Lower', data:fLower, borderColor:'transparent', backgroundColor:'rgba(168,85,247,.12)', fill:false, tension:.4, pointRadius:0},
+    {label:'Actual Revenue ($M)', data:actuals, borderColor:'#3b82f6', backgroundColor:gA, fill:true, tension:.4, pointRadius:3, pointBackgroundColor:'#3b82f6', borderWidth:2, spanGaps:false},
+    {label:'Forecast ($M)', data:forecast, borderColor:'#a855f7', backgroundColor:'transparent', fill:false, tension:.4, pointRadius:3, pointBackgroundColor:'#a855f7', borderWidth:2, borderDash:[5,3], spanGaps:false}
+  ]}, options:{responsive:true, maintainAspectRatio:false, animation:{duration:800},
+    plugins:{legend:{display:false}, tooltip:{mode:'index', intersect:false, backgroundColor:'rgba(7,11,21,.95)', borderColor:'rgba(59,130,246,.2)', borderWidth:1, padding:10, filter:item=>item.dataset.label!=='CI Upper'&&item.dataset.label!=='CI Lower'}},
+    scales:{x:{grid:gridOpts, ticks:{...tickOpts,maxTicksLimit:9}}, y:{grid:gridOpts, ticks:tickOpts, beginAtZero:false}}
+  }});
+}
+
+// ── MARGIN FORECAST CHART ────────────────────────────────────────
+function initMarginChart() {
+  const ctx = document.getElementById('marginChart').getContext('2d');
+  const qs = ['Q1 25','Q2 25','Q3 25F','Q4 25F','Q1 26F','Q2 26F'];
+  const margins = [30.8,32.1,33.3,34.1,35.0,35.8];
+  const g = ctx.createLinearGradient(0,0,0,150);
+  g.addColorStop(0,'rgba(6,182,212,.25)');g.addColorStop(1,'rgba(6,182,212,.02)');
+  new Chart(ctx, {type:'line', data:{labels:qs, datasets:[{label:'EBITDA Margin (%)', data:margins, borderColor:'#06b6d4', backgroundColor:g, fill:true, tension:.4, pointRadius:4, pointBackgroundColor:'#06b6d4', borderWidth:2}]},
+    options:{responsive:true, maintainAspectRatio:false, animation:{duration:700},
+      plugins:{legend:{display:false}, tooltip:{backgroundColor:'rgba(7,11,21,.95)', borderColor:'rgba(6,182,212,.2)', borderWidth:1, padding:8}},
+      scales:{x:{grid:gridOpts, ticks:tickOpts}, y:{grid:gridOpts, ticks:{...tickOpts, callback:v=>v+'%'}, suggestedMin:28, suggestedMax:38}}
+  }});
+}
+
+// ── SCENARIO CHART ──────────────────────────────────────────────
+let scenarioChart;
+function initScenarioChart(rev=264, ebitda=84.8, fcf=55.4) {
+  if (scenarioChart) scenarioChart.destroy();
+  const ctx = document.getElementById('scenarioChart').getContext('2d');
+  const base = [264, 84.8, 55.4, 32.1, 26];
+  const curr = [rev, ebitda, fcf, +(ebitda/rev*100).toFixed(1), Math.round(108.4/(4.2*(1+(rev-264)/264*0.5+0.01))||26)];
+  scenarioChart = new Chart(ctx, {type:'bar', data:{
+    labels:['Revenue ($M)','EBITDA ($M)','Free Cash Flow ($M)','EBITDA Margin (%)','Runway (mo)'],
+    datasets:[
+      {label:'Base Case', data:base, backgroundColor:'rgba(59,130,246,.3)', borderColor:'rgba(59,130,246,.6)', borderWidth:1.5, borderRadius:4},
+      {label:'Scenario', data:curr, backgroundColor:curr.map((v,i)=>v>=base[i]?'rgba(34,197,94,.45)':'rgba(239,68,68,.45)'), borderColor:curr.map((v,i)=>v>=base[i]?'#22c55e':'#ef4444'), borderWidth:1.5, borderRadius:4}
+    ]
+  }, options:{responsive:true, maintainAspectRatio:false, animation:{duration:400},
+    plugins:{legend:{display:true, position:'top', labels:{boxWidth:10,padding:12}}, tooltip:{backgroundColor:'rgba(7,11,21,.95)', borderColor:'rgba(59,130,246,.2)', borderWidth:1, padding:10}},
+    scales:{x:{grid:{display:false}, ticks:{...tickOpts,font:{size:9}}}, y:{grid:gridOpts, ticks:tickOpts}}
+  }});
+}
+
+// ── SCENARIO LOGIC ──────────────────────────────────────────────
+const BASE = {rev:264, ebitda:84.8, margin:32.1, fcf:55.4, runway:26, burnRate:4.2};
+function updateScenario() {
+  const opCost = +document.getElementById('s-opcost').value / 100;
+  const mktg   = +document.getElementById('s-mktg').value   / 100;
+  const growth = +document.getElementById('s-growth').value / 100;
+  const hc     = +document.getElementById('s-hc').value     / 100;
+  const infra  = +document.getElementById('s-infra').value  / 100;
+  const churn  = +document.getElementById('s-churn').value;
+
+  document.getElementById('v-opcost').textContent = (opCost>=0?'+':'')+Math.round(opCost*100)+'%';
+  document.getElementById('v-mktg').textContent   = (mktg>=0?'+':'')+Math.round(mktg*100)+'%';
+  document.getElementById('v-growth').textContent = Math.round(growth*100)+'%';
+  document.getElementById('v-hc').textContent     = (hc>0?'+':'')+Math.round(hc*100)+'%';
+  document.getElementById('v-infra').textContent  = (infra>=0?'+':'')+Math.round(infra*100)+'%';
+  document.getElementById('v-churn').textContent  = (churn>=0?'+':'')+churn+'pts';
+
+  const newRev = BASE.rev * (1 + growth) * (1 - churn * 0.012);
+  const opCostImpact = BASE.rev * 0.41 * opCost;
+  const mktgImpact   = BASE.rev * 0.07 * mktg;
+  const hcImpact     = BASE.rev * 0.26 * hc;
+  const infraImpact  = BASE.rev * 0.06 * infra;
+  const newEbitda = BASE.ebitda + (newRev - BASE.rev) * 0.38 - opCostImpact - mktgImpact - hcImpact - infraImpact;
+  const newMargin = newEbitda / newRev * 100;
+  const newFcf    = newEbitda * 0.653 * (1 - Math.max(0, opCost) * 0.2);
+  const newBurn   = BASE.burnRate * (1 + Math.max(0, opCost) + Math.max(0, hc) * 0.7 + Math.max(0, infra) * 0.4);
+  const newRunway = Math.round(108.4 / newBurn);
+  const riskScore = Math.min(100, Math.round(68 + opCost*40 + mktg*15 + hc*20 + infra*25 + churn*3 - growth*15));
+  const riskLabel = riskScore<40?'Low':riskScore<60?'Moderate':riskScore<75?'Elevated':'Critical';
+  const riskColor = riskScore<40?'var(--g1)':riskScore<60?'var(--b2)':riskScore<75?'var(--am)':'var(--r1)';
+
+  const fmt = (v, pfx='$', sfx='M', decimals=1) => pfx + Math.abs(v).toFixed(decimals) + sfx;
+  const delt = (v, base, pfx='$', sfx='M') => {
+    const d = v - base;
+    return (d>=0?'+':'-') + pfx + Math.abs(d).toFixed(1) + sfx;
+  };
+  const setOut = (id, val, did, delta, base, color) => {
+    document.getElementById(id).textContent = val;
+    document.getElementById(id).style.color = color;
+    document.getElementById(did).textContent = delta;
+    document.getElementById(did).style.color = (parseFloat(delta) >= 0 || delta.startsWith('+')) ? 'var(--g1)' : 'var(--r1)';
+  };
+
+  document.getElementById('out-rev').textContent = '$'+newRev.toFixed(0)+'M';
+  document.getElementById('out-rev').style.color = newRev >= BASE.rev ? 'var(--b2)' : 'var(--r1)';
+  document.getElementById('out-rev-d').textContent = delt(newRev, BASE.rev) + ' vs base';
+  document.getElementById('out-rev-d').style.color = newRev >= BASE.rev ? 'var(--g1)' : 'var(--r1)';
+
+  document.getElementById('out-ebitda').textContent = '$'+newEbitda.toFixed(1)+'M';
+  document.getElementById('out-ebitda').style.color = newEbitda >= BASE.ebitda ? 'var(--g1)' : 'var(--r1)';
+  document.getElementById('out-ebitda-d').textContent = (newEbitda>=BASE.ebitda?'+':'')+( newEbitda-BASE.ebitda).toFixed(1)+'M · '+(newMargin).toFixed(1)+'%';
+  document.getElementById('out-ebitda-d').style.color = newEbitda >= BASE.ebitda ? 'var(--g1)' : 'var(--r1)';
+
+  document.getElementById('out-runway').textContent = newRunway + ' mo';
+  document.getElementById('out-runway').style.color = newRunway >= BASE.runway ? 'var(--am)' : 'var(--r1)';
+  document.getElementById('out-runway-d').textContent = (newRunway>=BASE.runway?'+':'')+(newRunway-BASE.runway)+' mo vs base';
+  document.getElementById('out-runway-d').style.color = newRunway >= BASE.runway ? 'var(--g1)' : 'var(--r1)';
+
+  document.getElementById('out-margin').textContent = newMargin.toFixed(1)+'%';
+  document.getElementById('out-margin').style.color = newMargin >= BASE.margin ? 'var(--cy)' : 'var(--r1)';
+  document.getElementById('out-margin-d').textContent = (newMargin>=BASE.margin?'+':'')+(newMargin-BASE.margin).toFixed(1)+'pts vs base';
+  document.getElementById('out-margin-d').style.color = newMargin >= BASE.margin ? 'var(--g1)' : 'var(--r1)';
+
+  document.getElementById('out-fcf').textContent = '$'+Math.max(0,newFcf).toFixed(1)+'M';
+  document.getElementById('out-fcf').style.color = newFcf >= BASE.fcf ? 'var(--g1)' : 'var(--r1)';
+  document.getElementById('out-fcf-d').textContent = (newFcf>=BASE.fcf?'+':'')+(newFcf-BASE.fcf).toFixed(1)+'M vs base';
+  document.getElementById('out-fcf-d').style.color = newFcf >= BASE.fcf ? 'var(--g1)' : 'var(--r1)';
+
+  document.getElementById('out-risk').textContent = riskLabel;
+  document.getElementById('out-risk').style.color = riskColor;
+  document.getElementById('out-risk-d').textContent = 'Score: '+riskScore+'/100';
+  document.getElementById('out-risk-d').style.color = riskColor;
+
+  initScenarioChart(newRev, Math.max(0,newEbitda), Math.max(0,newFcf));
+}
+
+function resetScenario() {
+  ['s-opcost','s-mktg','s-infra'].forEach(id => document.getElementById(id).value=0);
+  document.getElementById('s-growth').value = 18;
+  document.getElementById('s-hc').value     = 0;
+  document.getElementById('s-churn').value  = 0;
+  updateScenario();
+}
+
+function applyScenario(type) {
+  const scenarios = {
+    europe:   {opcost:15, mktg:20,  growth:12, hc:20, infra:25, churn:0},
+    austerity:{opcost:-15, mktg:-20, growth:18, hc:0,  infra:-10, churn:-2},
+    growth:   {opcost:10, mktg:40,  growth:35, hc:30, infra:20, churn:0}
+  };
+  const s = scenarios[type];
+  document.getElementById('s-opcost').value  = s.opcost;
+  document.getElementById('s-mktg').value    = s.mktg;
+  document.getElementById('s-growth').value  = s.growth;
+  document.getElementById('s-hc').value      = s.hc;
+  document.getElementById('s-infra').value   = s.infra;
+  document.getElementById('s-churn').value   = s.churn;
+  updateScenario();
+}
+
+// ── INIT ALL CHARTS ─────────────────────────────────────────────
+function initCharts() {
+  initRevChart('rev');
+  initMixChart();
+  initCashChart();
+  initRunwayChart();
+  initRiskRadarChart();
+  initRiskDistChart();
+  initForecastChart();
+  initMarginChart();
+  initScenarioChart();
+  updateScenario();
+}
+
+// ── PERIOD SELECTOR ─────────────────────────────────────────────
+document.getElementById('periodSel').addEventListener('change', function() {
+  // In production would refresh data; here just re-init charts
+  if(document.getElementById('revChart')) initRevChart('rev');
+});
+</script>
+</body>
+</html>
